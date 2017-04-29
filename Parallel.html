@@ -1,0 +1,314 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+
+	<title>National Student Survey | Parallel Coordinates</title>
+
+	<script type="text/javascript" src="lib/jquery.js"></script>
+	<script type="text/javascript" src="lib/underscore.js"></script>
+	<script type="text/javascript" src="lib/backbone.js"></script>
+	<script type="text/javascript" src="lib/parallel-coordinates.js"></script>
+	<script type="text/javascript" src="lib/processing.js"></script>
+
+
+	<!-- SlickGrid -->
+	<link href="slick-default-theme.css" rel="stylesheet" />
+	<link href="slick.grid.css" rel="stylesheet" />
+	<link href="css/_slick.grid.css" rel="stylesheet" />
+	<link href="css/slick-default-theme.css" rel="stylesheet" />
+	<link href="css/slick.columnpicker.css" rel="stylesheet" />
+	<link href="css/slick.grid.css" rel="stylesheet" />
+	<link href="css/slick.pager.css" rel="stylesheet" />
+	<link href="css/style.css" rel="stylesheet" />
+	<link href="css/smoothness/jquery-ui-1.8.16.custom.css" rel="stylesheet" />
+
+	<link href="lib/controls/slick.pager.css" rel="stylesheet" />
+	<link href="css/slick.pager.css" rel="stylesheet" />
+	<script src="lib/plugins/jquery.event.drag-2.0.min.js"></script>
+	<script src="lib/plugins/jquery-ui-1.8.11.custom.min.js"></script>
+	<script src="lib/plugins/slick.core.js"></script>
+	<script src="lib/plugins/slick.grid.js"></script>
+	<script src="lib/plugins/slick.dataview.js"></script>
+	<script src="lib/plugins/slick.pager.js"></script>
+	<script src="lib/controls/slick.pager.js"></script>
+	<script src="lib/plugins/slick.rowselectionmodel.js"></script>
+	<script src="lib/plugins/grid.js"></script>
+	<script src="lib/plugins/slick.columnpicker.js"></script>
+	<script type="text/javascript" src="lib/plugins/filter.js"></script>
+
+	<!-- Database -->
+	<script src="data/nss.js"></script>
+</head>
+
+<body>
+
+	<div>
+		<h2>Parallel Coordinates of NSS dataset</h2>
+
+		<a onclick="javascript:ShowHide('HiddenDiv')" href="javascript:;">Instructions</a>
+		<script language="JavaScript">
+			function ShowHide(divId) {
+				if (document.getElementById(divId).style.display == 'none') {
+					document.getElementById(divId).style.display = 'block';
+				}
+				else {
+					document.getElementById(divId).style.display = 'none';
+				}
+			}
+		</script>
+
+		<div class="mid" id="HiddenDiv" style="DISPLAY: none">
+			<p>To <em>create</em> a filter on some axes, <strong>click and drag</strong> starting from the area between axes and select the range to filter. To filter a single axis, click and drag within that axis.</p>
+			<p>To <em>move</em> a filter, <strong>drag</strong> it up and down.</p>
+			<p>To <em>destroy</em> a filter, <strong>double click</strong> the translucent gray axis background.</p>
+			<p>To <em>reorder</em> an axis, <strong>drag and drop</strong> a column to the desired place.</p>
+			<p>To <em>show/hide</em> an axis, <strong>right click</strong> on any column's lable and then hide or show the desired axes</p>
+			<p>To <em>sort</em> a column's values, <strong>click</strong> on the column's lable</p>
+			<p>To <em>show the density</em>, <strong>tick</strong> the box beside <i>show</i> in Density frame</p>
+			<p>To <em>change</em> the lines style, <strong>tick</strong> the box beside <i>stright </i>or <i>curve </i>in Line style frame</p>
+			<p>To <em>change</em> the answers' axes scale, <strong>tick</strong> the box beside <i>show </i> in the Rescale the answers' axes frame</p>
+			<p>&nbsp;</p>
+		</div>
+	</div>
+
+	<fieldset style="width: 200px; height: 40px; float: left;">
+		<legend>Line style</legend>
+		<label for="lineType1">
+			Straight 
+			<input type="radio" name="lineType" id="lineType1" value="ln" />
+		</label>
+
+		&nbsp;
+	  
+		<label for="lineType2">
+			Curve 
+			<input type="radio" name="lineType" id="lineType2" value="cv" checked />
+		</label>
+	</fieldset>
+
+	<fieldset style="width: 180px; height: 40px; float: left;">
+		<legend>Rescale the answers' axes</legend>
+		<label for="minntx">
+			<input style="display: none" type="text" name="mintx" id="mintx" value="0" size="2" readonly />
+		</label>
+
+		&nbsp;
+		
+		<label for="maxtx">
+			<input style="display: none" type="text" name="maxtx" id="maxtx" value="100" size="2" readonly />
+		</label>
+		<label for="chkMinMax">
+			Show
+			<input type="checkbox" name="chkMinMax" id="chkMinMax" value="1" />
+		</label>
+	</fieldset>
+
+	<fieldset style="width: 100px; height: 40px; float: left;">
+		<legend>Density</legend>
+		<label for="chkDensity">
+			Show
+			<input type="checkbox" name="chkDensity" id="chkDensity" value="1" />
+		</label>
+	</fieldset>
+	<fieldset style="width: 140px; margin-right: 10px; height: 40px; float: left;">
+		<legend>Color map</legend>
+		<div id="color-map" style="width: 140px; float: left;">
+			<script type="application/processing">
+			size(140,10);
+			background(255); // white background
+
+			float left_margin = 0;
+			float top_margin = 0;
+			float w = 140;
+			float h = height - top_margin*2;
+
+			colorMode(HSB, 1);
+
+			for (int i = 0; i < w; i = i+2) {
+			  float ratio = i/w;
+			  float hue = ratio;
+			  float saturation = 1;
+			  float brightness = 1;
+			  stroke( hue, saturation, brightness );
+			  line(left_margin+i, top_margin, left_margin+i, top_margin+10);
+			  line(left_margin+i+1, top_margin, left_margin+i+1, top_margin+10);
+			}
+			</script>
+			<canvas tabindex="0" id="__processing0" width="140px" height="10px" style="image-rendering: -webkit-optimize-contrast !important;"></canvas> 
+		</div>
+		<div style="width: 80px; width: 140px; float: left; position: relative">
+		</div>
+	</fieldset>
+	<fieldset style="width: 140px; margin-right: 10px; height: 40px; float: left;">
+		<legend>Line opacity</legend>
+		<div style="width: 80px; width: 160px; float: left;">
+			<input type="range" id="opacity-range" style="width:100px;float: left;" name="points" min="0" max="5" value="2" />
+			<div id="opactiy" style="float: left; margin-left: 10px;">0.2</div>
+		</div>
+	</fieldset>
+
+
+	<div style="clear: both"></div>
+	<div id="parallel-coordinates"></div>
+
+
+	<div style="width: 1160px;">
+
+		<div id="pager" style="width: 1400px; height: 20px;"></div>
+		<div id="myGrid" style="width: 1400px; height: 5500px;"></div>
+	</div>
+
+	<script type="text/javascript">
+
+		var dimensions = new Filter();
+
+		dimensions.set({ data: NSS });
+		// indicate the parallel coordinates' axes
+		var parallel = new Parallel_coordinates({
+			title: 'Test-Multidimensional Query - Parallel Coordinates',
+			model: dimensions,
+			el: document.getElementById('parallel-coordinates'),
+			columns: [
+					'Level',
+					'Subject',
+					'Question_Number',
+					'Definitely_disagree',
+					'Mostly_disagree',
+					'Neither_agree_nor_disagree',
+					'Mostly_agree',
+					'Definitely_agree',
+					'No_Answer'
+			],
+
+			alias: {
+				'Level': 'Level',
+				'Subject': 'Subject',
+				'Question_Number': 'Question_Number',
+				'Definitely_disagree': 'Definitely_disagree',
+				'Mostly_disagree': 'Mostly_disagree',
+				'Neither_agree_nor_disagree': 'Neither_agree_nor_disagree',
+				'Mostly_agree': 'Mostly_agree',
+				'Definitely_agree': 'Definitely_agree',
+				'No_Answer': 'No_Answer'
+			},
+			width: 1400,
+			height: 400,
+			gutter: { x: 100, y: 50 },
+		});
+
+		// indicate the grid column.
+		var slicky = new grid({
+			model: dimensions,
+			width: 1400,
+			columns: [
+					'Level',
+					'Subject_Name',
+					'Question',
+					'Definitely_disagree',
+					'Mostly_disagree',
+					'Neither_agree_nor_disagree',
+					'Mostly_agree',
+					'Definitely_agree',
+					'No_Answer',
+					'Response',
+					'Sample_Size'
+
+			],
+			alias: {
+
+				'Level': 'Level',
+				'Subject_Name': 'Subject_Name',
+				'Subject': 'Subject',
+				'Question': 'Question',
+				'Definitely_disagree': 'Definitely_disagree',
+				'Mostly_disagree': 'Mostly_disagree',
+				'Neither_agree_nor_disagree': 'Neither_agree_nor_disagree',
+				'Mostly_agree': 'Mostly_agree',
+				'Definitely_agree': 'Definitely_agree',
+				'No_Answer': 'No_Answer',
+				'Response': 'Response',
+				'Sample_Size': 'Sample_Size'
+
+			},
+
+		});
+
+		parallel.update();
+		slicky.update();
+
+		// When column reordered
+		slicky.bind('columnsReordered', function (_cols) {
+			//var cols = _(cols).reject(function(col) { return false/*col == 'Subject_Name'*/});
+
+			var cols = [];
+			$.each(_cols, function (key, val) {
+
+				var v = val;
+				if (v == "Subject_Name")
+					v = "Subject";
+				else if (v == "Question")
+					v = "Question_Number";
+
+				if ($.inArray(v, parallel.columns) >= 0)
+					cols.push(v);
+			});
+
+			console.log("columnsReordered : " + JSON.stringify(cols));
+
+			parallel.rearrange(cols);
+
+		});
+
+		// When column add/removed
+		slicky.bind('columnsChanged', function (_cols) {
+
+			// console.log("columnsChanged : " + JSON.stringify(_cols));
+
+			var cols = [];
+			$.each(_cols, function (key, val) {
+
+				var v = val.name;
+				if (v == "Subject_Name")
+					v = "Subject";
+				else if (v == "Question")
+					v = "Question_Number";
+
+				if ($.inArray(v, parallel.columns) >= 0)
+					cols.push(v);
+			});
+
+			console.log("columnsChanged : " + JSON.stringify(cols));
+
+			parallel.rearrange(cols);
+		});
+
+
+		$(function () {
+
+			// Click process of "Line / Curve"
+			$('input:radio').change(
+				function () {
+					parallel.update();
+				}
+			);
+
+			// Click process of "Use Min/Max"
+			$("#chkMinMax").change(function (e) {
+				parallel.update();
+			});
+
+			// Click process of "Show Density"
+			$("#chkDensity").change(function (e) {
+				parallel.update();
+			});
+
+		});
+
+	</script>
+
+	</div>
+</body>
+</html>
